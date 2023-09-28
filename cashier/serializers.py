@@ -13,7 +13,7 @@ class TransactionItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TransactionItem
-        fields = ['item' , 'qty']
+        fields = ['item', 'qty'] 
 
 class TransactionSerializer(serializers.ModelSerializer):
     items = TransactionItemSerializer(source="transactionitem_set", many=True)
