@@ -27,31 +27,39 @@ class createTransaction(generics.ListCreateAPIView):
     def post(self, request):
         cashier_id = request.data.get('cashier')
         items_data = request.data.get('items')
+        
         if not items_data:
             return Response({'error': 'No items provided in the request.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            cashier = get_user_model().objects.get(pk=int(cashier_id))
-        except (ValueError, get_user_model().DoesNotExist):
-            return Response({'error': 'Invalid cashier ID or cashier does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        cashier = None  # Initialize cashier as None
 
-        # Create a transaction with the number of items
-        transaction = Transaction.objects.create(number_of_items=len(items_data), cashier=cashier )
+        if cashier_id is not None:
+            try:
+                cashier = get_user_model().objects.get(pk=int(cashier_id))
+            except (ValueError, get_user_model().DoesNotExist):
+                return Response({'error': 'Invalid cashier ID or cashier does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Create a transaction with the correct cashier (or None) and number of items
+        transaction = Transaction.objects.create(number_of_items=len(items_data), cashier=cashier)
 
         # Create TransactionItem instances for each item in items_data
         for item_data in items_data:
-            item = item_data.get('item')
+            item_id = item_data.get('item')
             qty = item_data.get('qty')
-            TransactionItem.objects.create(transaction=transaction, item=item, qty=qty)
 
+            try:
+                # Retrieve the product based on item_id
+                product = Product.objects.get(pk=item_id)
+            except Product.DoesNotExist:
+                return Response({'error': f'Product with ID {item_id} does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+
+            TransactionItem.objects.create(transaction=transaction, item=product, qty=qty)
 
         # Query all transactions and serialize them
         transactions = Transaction.objects.all()
         transactionItem_serializer = TransactionItemSerializer(transactions, many=True)
         
         return Response(transactionItem_serializer.data, status=status.HTTP_201_CREATED)
-
-
 
 
 # class TransactionList(generics.ListAPIView):

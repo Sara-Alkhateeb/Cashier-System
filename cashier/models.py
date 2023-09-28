@@ -30,7 +30,7 @@ class Product(models.Model):
 
 
 class Transaction(models.Model):
-    cashier = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    cashier = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, null=True, blank=True)
     number_of_items = models.PositiveIntegerField()
     items = models.ManyToManyField(Product, through='TransactionItem')
     transaction_time = models.DateTimeField(auto_now_add=True)
