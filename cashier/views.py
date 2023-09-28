@@ -37,17 +37,41 @@ class createTransetion(APIView):
                 total_items += item.qty  # Increment the total_items count
             else:
                 return Response(item_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
 
         # Create the Transaction instance with the total_items count
         transaction = Transaction.objects.create(number_of_items=total_items)
         for item in items:
-            TransactionItem.objects.create(transaction=transaction, item=item.id, quantity=item.qty)
+            TransactionItem.objects.create(transaction=transaction, item=item, quantity=item.qty)
 
-        return Response({'transaction_id': transaction.id}, status=status.HTTP_201_CREATED)
+        transactions = Item.objects.all()
+        transactionItem_serializer = TransactionItemSerializer(Item, many=True)
+    
 
-class TransactionList(generics.ListCreateAPIView):
-   queryset = Transaction.objects.all()
-   serializer_class = TransactionSerializer
+        return Response("Transaction added!!", status=status.HTTP_201_CREATED)
 
+class TransactionList(generics.ListAPIView):
+    queryset = Transaction.objects.all()
+    serializer_class = TransactionSerializer
 
+class FilteredTransactionListView(generics.ListAPIView):
+    serializer_class = TransactionSerializer
+
+    def get_queryset(self):
+        queryset = Transaction.objects.all()
+
+        cashier_id = self.request.query_params.get('cashier_id')
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+
+        # Apply filters based on query parameters
+        if cashier_id:
+            queryset = queryset.filter(cashier_id=cashier_id)
+        if start_date and end_date:
+            queryset = queryset.filter(
+                Q(transaction_time__gte=start_date) &
+                Q(transaction_time__lte=end_date)
+            )
+
+        return queryset
 
