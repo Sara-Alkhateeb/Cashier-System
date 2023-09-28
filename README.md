@@ -79,7 +79,7 @@ Before you begin, ensure you have met the following requirements:
 ## Database
     The default database used in this project is PostgreSQL. You can configure the database settings in the .env file. Make sure to run database migrations (python manage.py migrate) after making changes to the database settings.
 
-## Usful Url:
+## Useful Url:
     Products list + Add product:  /api/products/
     View product details + Edit + delete : /api/products/{id}
     Adminstration : http://127.0.0.1:8000/admin/
